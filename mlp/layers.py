@@ -274,8 +274,63 @@ class Linear(Layer):
     def get_name(self):
         return 'linear'
 
+
+class Sigmoid(Linear):
+
+    def sigmoid(self, z):
+
+        the_sigmoid = 1.0 / (1 + numpy.exp(-z))
+        return the_sigmoid
+
+    def sigmoid_derivative(self, number):
+
+        the_sigmoid_derivative = number * (1 - number)
+        return the_sigmoid_derivative
+
+    def fprop(self, inputs):
+
+        a = numpy.dot(inputs, self.W) + self.b
+        h = numpy.vectorize(self.sigmoid, otypes=[numpy.float])(a)
+
+        return h
+
+    def bprop(self, h, igrads):
+
+        delta = igrads * numpy.vectorize(self.sigmoid_derivative, otypes=[numpy.float])(h)
+        ograds = numpy.dot(delta, self.W.T)
+
+        return delta, ograds
+
         
-        
-        
-        
-        
+    def get_name(self):
+        return 'sigmoid'
+
+
+class Softmax(Linear):
+
+    def softmax(self, a):
+
+        y = (numpy.exp(a) / numpy.exp(a).sum(axis=0)).T
+
+        return y
+
+    def fprop(self, inputs):
+
+        a = (numpy.dot(inputs, self.W) + self.b).T
+
+        return self.softmax(a)
+
+
+    def bprop_cost(self, h, igrads, cost):
+
+        if cost == None or cost.get_name() == 'ce':
+
+            ograds = numpy.dot(igrads, self.W.T)
+            return igrads, ograds
+
+        else:
+            raise NotImplementedError('Softmax.bprop_cost method not implemented '
+                                      'for the %s cost' % cost.get_name())
+
+    def get_name(self):
+        return 'softmax'
