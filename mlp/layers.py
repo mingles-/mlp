@@ -282,21 +282,20 @@ class Sigmoid(Linear):
         the_sigmoid = 1.0 / (1 + numpy.exp(-z))
         return the_sigmoid
 
-    def sigmoid_derivative(self, number):
+    def sigmoid_derivative(self, h):
 
-        the_sigmoid_derivative = number * (1 - number)
+        the_sigmoid_derivative = h * (1 - h)
         return the_sigmoid_derivative
 
     def fprop(self, inputs):
 
         a = numpy.dot(inputs, self.W) + self.b
-        h = numpy.vectorize(self.sigmoid, otypes=[numpy.float])(a)
 
-        return h
+        return self.sigmoid(a)
 
     def bprop(self, h, igrads):
 
-        delta = igrads * numpy.vectorize(self.sigmoid_derivative, otypes=[numpy.float])(h)
+        delta = igrads * self.sigmoid_derivative(h)
         ograds = numpy.dot(delta, self.W.T)
 
         return delta, ograds
@@ -309,8 +308,8 @@ class Sigmoid(Linear):
 class Softmax(Linear):
 
     def softmax(self, a):
-
-        y = (numpy.exp(a) / numpy.exp(a).sum(axis=0)).T
+        aexp = numpy.exp(a)
+        y = (aexp / numpy.sum(aexp, axis=0)).T
 
         return y
 
